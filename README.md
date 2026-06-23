@@ -11,3 +11,7 @@ A C# email automation program that parses structured contact records to send per
 ## Project Evolution
 ### Phase 1: Baseline Project (Version 1.0.0.0)
 The initial version of the program establishes the operational sequence of the email automation within a single, linear execution structure. This phase focuses entirely on functionality: enabling user login through non-hardcoded credentials, extracting files from the local environment, generating and sending tailored emails to recipients, and opening file streams to process and save data.
+
+## Future Updates
+* [ ] Organize the code into logical modules.
+* [ ] Allow the user to select if they would like to send an email one at a time (current implementation), or as a batch utilizing async/await.
