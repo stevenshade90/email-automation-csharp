@@ -15,3 +15,5 @@ The initial version of the program establishes the operational sequence of the e
 ## Future Updates
 * [ ] Organize the code into logical modules.
 * [ ] Allow the user to select if they would like to send an email one at a time (current implementation), or as a batch utilizing async/await.
+* [ ] Update the mailing service to MailKit.
+* [ ] Update the authentication method to the industry-standard OAuth 2.0.
