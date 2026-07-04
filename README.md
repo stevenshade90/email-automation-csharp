@@ -12,8 +12,15 @@ A C# email automation program that parses structured contact records to send per
 ### Phase 1: Baseline Project (Version 1.0.0.0)
 The initial version of the program establishes the operational sequence of the email automation within a single, linear execution structure. This phase focuses entirely on functionality: enabling user login through non-hardcoded credentials, extracting files from the local environment, generating and sending tailored emails to recipients, and opening file streams to process and save data.
 
+### Phase 2: Refactoring & Modularization (Version 2.0.0.0)
+The second phase transitions the application from a linear script into a modular structure. The original program has now been broken down into specialized, reusable components. 
+
+* **Modular Architecture:** Extracted core components out of `Program.cs` and isolated them into dedicated engine classes. `Program.cs` now acts exclusively as an orchestrator.
+* **Asynchronous Execution (`async`/`await`):** Offloaded I/O-bound operations and data streaming to background tasks, optimizing thread utilization and keeping the application interface responsive during processing.
+* **Resource Optimization:** Implemented resource disposal patterns via `using` blocks, ensuring that file streams and CSV data contexts are safely closed and cleared from memory immediately after execution.
+
 ## Future Updates
-* [ ] Organize the code into logical modules.
+* [x] Organize the code into logical modules.
 * [ ] Allow the user to select if they would like to send an email one at a time (current implementation), or as a batch utilizing async/await.
 * [ ] Update the mailing service to MailKit.
 * [ ] Update the authentication method to the industry-standard OAuth 2.0.
