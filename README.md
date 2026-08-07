@@ -1,5 +1,5 @@
 # Mass Email Automation Program
-A C# email automation program that parses structured contact records to send personalized HTML emails via SMTP. This program handles file streaming, email credentials, and user input to safely coordinate batch messaging.
+An asynchronous C# emailing program that dynamically discovers contacts via SerpApi, provides interactive CRUD data filtering, and automates personalized HTML email delivery using OAuth 2.0.
 
 ## Features
 * **User Information Security:** User credentials are located on the user's computer (`Environment.GetEnvironmentVariable`), preventing the need for hardcoded credentials in the program.
