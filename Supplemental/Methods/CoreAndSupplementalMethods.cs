@@ -1,23 +1,18 @@
-﻿using CsvHelper;
+﻿using Email_Automation.Engines;
 using Email_Automation.PrimaryUser;
-using Email_Automation.SupplementalMethods;
-using Email_Automation.Engines;
+using Email_Automation_Update.Supplemental.Methods;
+using MimeKit;
 using OrchestraInformation;
-
-using System.Globalization;
 using System.Net.Mail;
 using System.Text;
 using System.Text.RegularExpressions;
 
-/* add readingmessage location for ReadCsvAndLogOrchestraInfo (...1. Primary Documents\MailMessage_Prompt.txt)
-    PrimaryUser.AccountInformationEngine.UserMailMessage.To.Add(""); // test email
- */
 
-namespace Email_Automation.SupplementalMethods
+namespace Email_Automation_Update.Supplemental.Methods
 {
     internal class LoadingAndDisplay
     {
-        public static String divider = new String('_', Console.WindowWidth);
+        public static string divider = new string('_', Console.WindowWidth);
 
         //Delegates
         public Action<User> DisplayOrchestrasAndWarning => DisplayAndWarning;
@@ -27,7 +22,6 @@ namespace Email_Automation.SupplementalMethods
         public void LoadingImage(Task awaitingCsvProcessing)
         {
             //Loading image that will only display as the csv processing task is running
-
             int iterator = 1;
             Console.ForegroundColor = ConsoleColor.Green;
             char[] loading = { '|', '/', '-', '\\' };
@@ -45,16 +39,13 @@ namespace Email_Automation.SupplementalMethods
         private static void DisplayAndWarning(User PrimaryUser)
         {
             //A warning for each email that is about to send, and obtains user confirmation to send or exit program
-            int iterator = 1;
+            int iterator = 0;
 
-            foreach (Orchestra o in PrimaryUser)
-            {
-                Console.WriteLine("{0, 3: ##0}. {1, -45} : {2, -45}", iterator++, o.OrchestraName, o.OrchestraEmail);
-            }
+            PrimaryUser.AllOrchestrasFromRecord.ForEach(o => Console.WriteLine("{0, 3: ##0}. {1, -45} : {2, -45}", ++iterator, o.OrchestraName, o.Email));
 
             PrimaryUser.LoadingAndDisplayEngine.Warning = delegate (User PrimaryUser)
             {
-                String notice = $"\aYOU ARE ABOUT TO EMAIL THIS NUMBER OF RECIPIENTS: {PrimaryUser.AllOrchestras.Count()}";
+                string notice = $"\aYOU ARE ABOUT TO EMAIL THIS NUMBER OF RECIPIENTS: {iterator}";
 
                 Console.WriteLine($"{divider}");
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -88,22 +79,19 @@ namespace Email_Automation.CoreMethods
 {
     internal class MailingMethods
     {
-        public String EmailMessage { get; set; } = "";
-        public String Transcript { get; set; } = "";
-        public String UrlInfoAsString { get; set; } = "";
+        public string EmailMessage { get; set; } = "";
+        public string Transcript { get; set; } = "";
+        public string UrlInfoAsString { get; set; } = "";
         public static StringBuilder ModifiedUrl = new StringBuilder();
-
-        //Delegate
-        public static Action<User> SendEmail => EmailSendingSequence;
-
+        public static string MessageDirectory { get; set; } = @"";
 
         //Methods
+        [Obsolete("This method was used in the previous version, but may be reimplemented later")]
         public static async Task BuildURL(User PrimaryUser)
         {
             //URL for CSV task is built here, and this method will continue until
             //(1) an appropriately formatted URL is entered, and (2) data is pulled from the URL
-
-            String url;
+            string url;
             bool success = false;
 
             while (!success)
@@ -117,13 +105,13 @@ namespace Email_Automation.CoreMethods
                 {
                     ModifiedUrl.Append(url.Substring(0, url.IndexOf("/edit?")));
                     ModifiedUrl.Append("/export?format=csv&gid=");
-                    ModifiedUrl.Append(url.Substring(url.IndexOf("#gid=") + (new String("#gid=").Length)));
+                    ModifiedUrl.Append(url.Substring(url.IndexOf("#gid=") + new string("#gid=").Length));
 
                     try
                     {
                         PrimaryUser.MailingMethodsEngine.UrlInfoAsString = await PrimaryUser.AccountInformationEngine.UserHttpClient.GetStringAsync(ModifiedUrl.ToString());
 
-                        if (!String.IsNullOrWhiteSpace(PrimaryUser.MailingMethodsEngine.UrlInfoAsString))
+                        if (!string.IsNullOrWhiteSpace(PrimaryUser.MailingMethodsEngine.UrlInfoAsString))
                         {
                             success = true;
                         }
@@ -140,48 +128,18 @@ namespace Email_Automation.CoreMethods
             }
         }
 
-        public static async Task<bool> ReadCsvAndLogOrchestraInformation(User PrimaryUser)
+        public static void LoadEmailMessage(User PrimaryUser)
         {
-            //Data from the URL is processed and added to the PrimaryUser object
-            //This method is part of a While loop in the Main method -- false/true is returned to break the loop dependent upon successful parsing
-
-            String[] emailFilters = { ".net", ".com", ".edu", ".org" };
-
             try
             {
-                await Task.Run(() =>
+                if (File.Exists(MessageDirectory))
                 {
-                    //Gathers all orchestra names and emails 
-                    using var reader = new StringReader(PrimaryUser.MailingMethodsEngine.UrlInfoAsString);
-                    using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
-
-                    var orchestraRecords = csv.GetRecords<Orchestra>()
-                        .Where(orch => !String.IsNullOrWhiteSpace(orch.OrchestraEmail) && orch.OrchestraEmail.Contains('@'))
-                        .Where(orch => emailFilters.Any(f => orch.OrchestraEmail.Contains(f, StringComparison.OrdinalIgnoreCase)))
-                        .OrderBy(orch => orch.OrchestraName)
-                        .DistinctBy(orch => orch.OrchestraEmail.ToLower().Trim())
-                        .Select(orch =>
-                        {
-                            orch.OrchestraName = orch.OrchestraName.Trim();
-                            return orch;
-                        });
-
-                    foreach (var record in orchestraRecords)
-                    {
-                        PrimaryUser.AllOrchestras.Add(record);
-                    }
-                });
-
-                await Task.Run(() =>
-                {
-                    //Could use a try/catch here to handle any exceptions that may arise from reading the file, such as file not found or access denied (directory.exists?)
-                    //Generating email message
-                    using (StreamReader? readingMessage = new StreamReader(@""))
+                    using (StreamReader readingMessage = new StreamReader(MessageDirectory))
                     {
                         while (readingMessage.EndOfStream == false)
                         {
-                            String? currentLine = readingMessage.ReadLine();
-                            if (String.IsNullOrWhiteSpace(currentLine))
+                            string currentLine = readingMessage.ReadLine();
+                            if (string.IsNullOrWhiteSpace(currentLine))
                             {
                                 PrimaryUser.MailingMethodsEngine.EmailMessage += "<br>";
                                 continue;
@@ -189,28 +147,34 @@ namespace Email_Automation.CoreMethods
                             PrimaryUser.MailingMethodsEngine.EmailMessage += currentLine + "<br>";
                         }
                         PrimaryUser.MailingMethodsEngine.EmailMessage += PrimaryUser.HtmlSignatureProperty;
+
+                        //2 locations for email??
+                        PrimaryUser.AccountInformationEngine.EmailMessage = PrimaryUser.MailingMethodsEngine.EmailMessage;
                     }
-                });
-                //2 locations for email??
-                PrimaryUser.AccountInformationEngine.EmailMessage = PrimaryUser.MailingMethodsEngine.EmailMessage;
-                return false;
+                }
+                else
+                {
+                    throw new FileNotFoundException("Could not locate your file");
+                }
             }
-            catch
+            catch (FileNotFoundException e)
             {
-                Console.WriteLine("Error processing emails");
-                return true;
+                Console.WriteLine($"\nError processing request: {e.Message}");
+                Environment.Exit(1);
             }
         }
-
         public static void EmailSendingSequence(User PrimaryUser)
         {
             //Displays all emails and requests user confirmation prior to send -- this confirmation can probably be removed eventually (unittest for C#? Maybe integrate Python?)
-            foreach (Orchestra o in PrimaryUser)
+            foreach (OrchestraRecord o in PrimaryUser)
             {
+                PrimaryUser.AccountInformationEngine.UserMimeMessage = new MimeMessage();
+                PrimaryUser.AccountInformationEngine.MimeMessageInitialization();
+
                 //At this point, 'emailMessage' is already created from the async method, and the HTML signature is generated and attached to the emailMessage
                 //Maybe call a new method here? Pass in o, generate new message, and return
-                String updatedMailMessage = PrimaryUser.AccountInformationEngine.EmailMessage.Replace("#ORCHESTRA#", o.OrchestraName.Trim()); // Replace keyword with orchestra's name to add personalization to email
-                String previewText = updatedMailMessage
+                string updatedMailMessage = PrimaryUser.AccountInformationEngine.EmailMessage.Replace("#ORCHESTRA#", o.OrchestraName.Trim()); // Replace keyword with orchestra's name to add personalization to email
+                string previewText = updatedMailMessage
                     .Replace("<br>", "\n")
                     .Replace("<BR>", "\n")
                     .Replace("&nbsp;", " ")
@@ -219,47 +183,60 @@ namespace Email_Automation.CoreMethods
                 previewText = Regex.Replace(previewText, "<[^>]*>", "");
                 previewText = Regex.Replace(previewText, @"(\r?\n\s*){3,}", "\n\n");
 
-                PrimaryUser.AccountInformationEngine.UserMailMessage.Body = updatedMailMessage; // The actual complete email message -- modified for personalization and with HTML signature 
+                PrimaryUser.AccountInformationEngine.UserMimeMessage.Body = new TextPart("html")
+                {
+                    Text = updatedMailMessage // The actual complete email message -- modified for personalization and with HTML signature 
+                };
 
                 try
                 {
                     //This needs to be updated prior to send 
-                    PrimaryUser.AccountInformationEngine.UserMailMessage.To.Clear();
-                    PrimaryUser.AccountInformationEngine.UserMailMessage.To.Add(""); // test email
-                    //PrimaryUser.AccountInformationEngine.UserMailMessage.To.Add(o.OrchestraEmail); // primary send email
+                    PrimaryUser.AccountInformationEngine.UserMimeMessage.To.Add(new MailboxAddress(null, "")); // test email
+                    //PrimaryUser.AccountInformationEngine.UserMimeMessage.To.Add(new MailboxAddress(null, o.OrchestraEmail)); // primary send email
 
-                    Console.WriteLine($"EMAIL PREVIEW TO: {o.OrchestraName} : {o.OrchestraEmail}\n");
+                    Console.WriteLine($"EMAIL PREVIEW TO: {o.OrchestraName} : {o.Email}\n");
                     Console.WriteLine(previewText);
                     Console.Write("Press Y to send email: ");
 
                     ConsoleKeyInfo sendEmail = Console.ReadKey();
                     if (sendEmail.Key == ConsoleKey.Y)
                     {
-                        PrimaryUser.AccountInformationEngine.UserSmtpClient.Send(PrimaryUser.AccountInformationEngine.UserMailMessage);
-                        Console.WriteLine($"\nSuccessfully sent email to: {o.OrchestraEmail}" + $"\n{LoadingAndDisplay.divider}\n");
+                        PrimaryUser.AccountInformationEngine.UserSmtpClient.Send(PrimaryUser.AccountInformationEngine.UserMimeMessage);
+                        Console.ForegroundColor = ConsoleColor.DarkGreen;
+                        Console.WriteLine($"\nSuccessfully sent email to: {o.Email}");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine($"\n{LoadingAndDisplay.divider}\n");
+
 
                         PrimaryUser.SuccessfulEmails.Add(o);
                     }
                     else
                     {
-                        Console.WriteLine($"\nEmail not sent to: {o.OrchestraEmail}" + $"\n{LoadingAndDisplay.divider}\n");
+                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                        Console.WriteLine($"\nEmail not sent to: {o.Email}");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine($"\n{LoadingAndDisplay.divider}\n");
 
                         PrimaryUser.FailedEmails.Add(o);
                         continue;
                     }
 
                     //2 transcript locations??
-                    PrimaryUser.MailingMethodsEngine.Transcript += $"Sent to: {o.OrchestraName}  :  {o.OrchestraEmail}\n\n" + previewText
+                    PrimaryUser.MailingMethodsEngine.Transcript += $"Sent to: {o.OrchestraName}  :  {o.Email}\n\n" + previewText
                         + "\n" + $"ORCHESTRA keyword should be replaced with: {o.OrchestraName}" + $"\n{LoadingAndDisplay.divider}\n";
                 }
                 catch (SmtpException ex)
                 {
-                    Console.WriteLine($"SMTP Error sending to: {o.OrchestraEmail}: {ex.StatusCode} - {ex.Message}");
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
+                    Console.WriteLine($"\nSMTP Error sending to: {o.Email}: {ex.StatusCode} - {ex.Message}");
+                    Console.ForegroundColor = ConsoleColor.White;
                     PrimaryUser.FailedEmails.Add(o);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"General error sending to: {o.OrchestraEmail}: {ex.Message}");
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
+                    Console.WriteLine($"\nGeneral error sending to: {o.Email}: {ex.Message}\n");
+                    Console.ForegroundColor = ConsoleColor.White;
                     PrimaryUser.FailedEmails.Add(o);
                 }
 

@@ -1,6 +1,8 @@
 ﻿using Email_Automation.PrimaryUser;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using OrchestraInformation;
-using System.Net.Mail;
 
 /*
  * Needs the following filled prior to use:
@@ -17,15 +19,15 @@ namespace Email_Automation.Engines
     {
         public String UserPassword { get; private set; } = "";
 
-        public SmtpClient UserSmtpClient { get; set; }
+        public SmtpClient UserSmtpClient { get; set; } = new SmtpClient();
         public HttpClient UserHttpClient { get; set; }
 
-        public MailMessage UserMailMessage { get; set; }
-        public MailAddress UserMailAddress { get; set; }
+        public MimeMessage UserMimeMessage { get; set; } = new MimeMessage();
 
         public String MainUserEmail { get; init; } = "";
-        public String? MainUserDisplayName { get; init; } = "";
-        public String? EmailMessage { get; set; } = "";
+        public String MainUserDisplayName { get; init; } = "";
+        public String EmailSubject = "";
+        public String EmailMessage { get; set; } = "";
 
         private const String smtpHost = "smtp.gmail.com";
         private const int smtpPort = 587;
@@ -36,9 +38,7 @@ namespace Email_Automation.Engines
         //Primary Constructor
         public AccountInformationEngine()
         {
-            UserAccountCreationMethods += PasswordRetrieval;
-            UserAccountCreationMethods += ClientInitialization;
-            UserAccountCreationMethods += MailMessageInitialization;
+            UserAccountCreationMethods += MimeMessageInitialization;
         }
 
         //Methods
@@ -47,74 +47,17 @@ namespace Email_Automation.Engines
             UserAccountCreationMethods.Invoke();
         }
 
-        private void PasswordRetrieval()
-        {
-            //Finds user password from a text file 
-            //Like the URL method, maybe have validation logic to take user input? Maybe one generic method to process both, and a way for PC to scan for appropriate txt file name regardless of location?
-
-            /*
-            while (String.IsNullOrEmpty(_password))
-            {
-                Console.Write("Enter your password: ");
-                _password = Console.ReadLine();
-                if (String.IsNullOrEmpty(_password))
-                {
-                    Console.WriteLine("Password cannot be empty. Please try again.");
-                }
-            }
-            Console.WriteLine("Password retrieved successfully.");
-            */
-
-            String passwordFile = @""; // Specify the path to the password file here
-            Console.Write("Locating Password: ");
-            try
-            {
-                using (StreamReader sr = new StreamReader(passwordFile))
-                {
-                    UserPassword = sr.ReadToEnd();
-                    UserPassword = UserPassword.Trim();
-
-                    if (!(String.IsNullOrEmpty(UserPassword)))
-                    {
-                        Console.Write("Password retrieved\n");
-                    }
-                    else if (String.IsNullOrEmpty(UserPassword) || !(File.Exists(passwordFile)))
-                    {
-                        throw new FileNotFoundException("Password file is empty or the file location does not exist.");
-                    }
-                }
-            }
-            catch (FileNotFoundException ex)
-            {
-                Console.WriteLine($"Error retrieving password => {ex.Message}");
-                Environment.Exit(1);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Error retrieving password => {e.Message}");
-                Environment.Exit(1);
-            }
-        }
-
-        private void ClientInitialization()
+        public void ClientInitialization(User u)
         {
             //User object clients are initialized, allowing communication with internet and email
             try
             {
-                UserHttpClient = new HttpClient()
-                {
-                    Timeout = TimeSpan.FromSeconds(10)
-                };
+                UserHttpClient = new HttpClient();
 
-                UserSmtpClient = new SmtpClient
-                {
-                    Host = smtpHost,
-                    Port = smtpPort,
-                    EnableSsl = true,
-                    UseDefaultCredentials = false,
-                    Credentials = new System.Net.NetworkCredential(MainUserEmail, UserPassword),
-                    Timeout = 10000
-                };
+                SaslMechanismOAuth2 oauth2 = new SaslMechanismOAuth2(MainUserEmail, (u.UserAuthentication.AccessToken).Result);
+
+                UserSmtpClient.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+                UserSmtpClient.Authenticate(oauth2);    
             }
             catch (Exception ex)
             {
@@ -123,17 +66,13 @@ namespace Email_Automation.Engines
             }
         }
 
-        private void MailMessageInitialization()
+        public void MimeMessageInitialization()
         {
-            //Generation of User's mailmessage/address objects to send the emails later
-
-            UserMailAddress = new MailAddress(MainUserEmail, MainUserDisplayName);
-            UserMailMessage = new MailMessage()
+            UserMimeMessage.From.Add(new MailboxAddress(MainUserDisplayName, MainUserEmail));
+            UserMimeMessage.Subject = EmailSubject;
+            UserMimeMessage.Body = new TextPart("html")
             {
-                From = UserMailAddress,
-                Subject = "",
-                Body = "", //Filled later prior to send
-                IsBodyHtml = true
+                Text = "" //Filled later
             };
         }
     }
@@ -163,7 +102,6 @@ namespace Email_Automation.Engines
         {
             //Generates an html document listing emails that were sucessfully/unsuccessfully sent as well a transcript showing each email sent to all orchestras 
             //These files are auto saved with appropriate tags and location to the directory generated from GenerateDirectory
-
             String dateAndTime = DateTime.Now.ToLongDateString() + " (" + DateTime.Now.ToLongTimeString() + ")";
 
             DirectoryInfo dir = GenerateDirectory(PrimaryUser);
@@ -174,9 +112,9 @@ namespace Email_Automation.Engines
                 if (PrimaryUser.FailedEmails.Count() > 0)
                 {
                     Console.WriteLine($"Emails failed to send ({PrimaryUser.FailedEmails.Count()}):");
-                    foreach (Orchestra o in PrimaryUser.FailedEmails)
+                    foreach (OrchestraRecord o in PrimaryUser.FailedEmails)
                     {
-                        Console.WriteLine($"- {o.OrchestraEmail}");
+                        Console.WriteLine($"- {o.Email}");
                     }
                 }
                 else
@@ -202,16 +140,16 @@ namespace Email_Automation.Engines
                            + PrimaryUser.FailedEmails.Count()}</span></u></B></H3>");
 
                         //List successful emails
-                        foreach (Orchestra o in PrimaryUser.SuccessfulEmails)
+                        foreach (OrchestraRecord o in PrimaryUser.SuccessfulEmails)
                         {
-                            htmlWriter.WriteLine("&nbsp;&nbsp;&nbsp;&nbsp;[+] {0} : {1}<br>", o.OrchestraName, o.OrchestraEmail);
+                            htmlWriter.WriteLine("&nbsp;&nbsp;&nbsp;&nbsp;[+] {0} : {1}<br>", o.OrchestraName, o.Email);
                         }
 
                         //List failed emails
                         htmlWriter.WriteLine($"<H3><B><u><span style=\"color: red;\">Failed Emails: {PrimaryUser.FailedEmails.Count()}</span></u></B></H3>");
-                        foreach (Orchestra o in PrimaryUser.FailedEmails)
+                        foreach (OrchestraRecord o in PrimaryUser.FailedEmails)
                         {
-                            htmlWriter.WriteLine($"&nbsp;&nbsp;&nbsp;&nbsp;[-] {o.OrchestraEmail}<br>");
+                            htmlWriter.WriteLine($"&nbsp;&nbsp;&nbsp;&nbsp;[-] {o.Email}<br>");
                         }
                         htmlWriter.WriteLine("</body></html>");
                     }
@@ -254,11 +192,11 @@ namespace Email_Automation.Engines
         private DirectoryInfo GenerateDirectory(User PrimaryUser)
         {
             //Generates and returns the directory used to autosave the html and transcript documents
-            String stateCode = String.IsNullOrWhiteSpace(PrimaryUser.AllOrchestras[0].OrchestraState) 
+            String stateCode = String.IsNullOrWhiteSpace(PrimaryUser.AllOrchestrasFromRecord[0].State) 
                 ? "N/A" 
-                : PrimaryUser.AllOrchestras[0].OrchestraState;
+                : PrimaryUser.AllOrchestrasFromRecord[0].State;
 
-            DirectoryInfo dir = new DirectoryInfo(@"");
+            DirectoryInfo dir = new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\transcripts");
             dir.Create();
             
             DirectoryInfo subd = new DirectoryInfo(Path.Combine(dir.FullName, stateCode));
