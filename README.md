@@ -19,8 +19,17 @@ The second phase transitions the application from a linear script into a modular
 * **Asynchronous Execution (`async`/`await`):** Offloaded I/O-bound operations and data streaming to background tasks, optimizing thread utilization and keeping the application interface responsive during processing.
 * **Resource Optimization:** Implemented resource disposal patterns via `using` blocks, ensuring that file streams and CSV data contexts are safely closed and cleared from memory immediately after execution.
 
+### Phase 3: OAuth2, Dynamic API Discovery & Interactive CRUD (Version 3.0.0.0)
+The third phase transitions the application from relying on static local data files to dynamically discovering targets via web search APIs, securing access via modern OAuth2 protocols, and giving the user real-time control over the target data via CRUD operations.
+
+* **OAuth2 Authentication:** Integrated OAuth2 identity validation at program startup, replacing basic credentials with token-based authentication for secure session initialization and API authorization.
+* **Dynamic Web Searches:** Embedded in-app API query engine using SerpApi to perform real-time web searches, allowing users to automatically aggregate orchestra directory data by county without manual list preparation.
+* **CRUD & Filtering Engine:** Built an interactive CRUD layer directly into the workflow. Data is parsed and filtered automatically, then exposed through CRUD functionality so the user can review and modify data before approving the final email queue.
+
 ## Future Updates
 * [x] Organize the code into logical modules.
-* [ ] Allow the user to select if they would like to send an email one at a time (current implementation), or as a batch utilizing async/await.
-* [ ] Update the mailing service to MailKit.
-* [ ] Update the authentication method to the industry-standard OAuth 2.0.
+* [x] Update the mailing service to MailKit.
+* [x] Update the authentication method to the industry-standard OAuth 2.0.
+* [ ] Implement `Polly` to improve API call resilience and prevent data loss during network interruptions.
+* [ ] Allow the user to select if they would like to send an email one at a time (current implementation), or as a batch via parallel async tasks (`Parallel.ForEachAsync`).
+* [ ] Implement an asynchronous API search to allow multiple concurrent requests.
