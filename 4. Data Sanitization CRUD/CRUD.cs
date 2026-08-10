@@ -8,7 +8,7 @@ using OrchestraInformation;
 
 namespace SqlData
 {
-    public class Program
+    public class Crud
     {
         public static bool ContinueCrud { get; set; } = true; 
         public static bool CanConnect { get; set; }
@@ -32,7 +32,7 @@ namespace SqlData
 
                 int.TryParse(Console.ReadLine(), out int choice);
                 Console.WriteLine();
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ResetColor();
 
                 Action crudOperation = CrudOperation(choice);
                 crudOperation.Invoke();
@@ -133,7 +133,7 @@ namespace SqlData
 
                     int.TryParse(Console.ReadLine(), out int choice);
                     Console.WriteLine();
-                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.ResetColor();
 
                     var _ = InputOrchestraInfo(choice, record);
                     context.SaveChanges();
@@ -242,6 +242,10 @@ namespace SqlData
 
     public class OrchestraRecordContext : DbContext
     {
+        public IConfiguration config = new ConfigurationBuilder()
+            .AddUserSecrets<OrchestraRecordContext>()
+            .Build();
+
         public OrchestraRecordContext() : base() { }
 
         //These map to the tables in the database, where the table name is the same as the DbSet property name
@@ -250,7 +254,8 @@ namespace SqlData
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("");
+            optionsBuilder.UseSqlServer(config["Db:connectionString"]);
         }
+
     }
 }

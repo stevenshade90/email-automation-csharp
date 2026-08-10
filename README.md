@@ -3,7 +3,7 @@ An asynchronous C# emailing program that dynamically discovers contacts via Serp
 
 ## Features
 * **User Information Security:** User credentials are located on the user's computer (`Environment.GetEnvironmentVariable`), preventing the need for hardcoded credentials in the program.
-* **StreamReader and StreamWriter:** Utilizes `StreamReader` to load and display data from a CSV file, and uses `StreamWriter` to save email transcripts.
+* **StreamReader and StreamWriter:** Utilizes `StreamReader` to load and display data from a .txt file, and uses `StreamWriter` to save email transcripts.
 * **Emailing Guardrails:** Displays the email that is about to be sent for user verification, then requires explicit user confirmation (`Console.ReadKey`) before sending an email.
 * **HTML Integration:** Utilizes HTML syntax to structure transcript outputs, as well as generate a user signature on the email.
 * **RegEx Preview:** Implements `System.Text.RegularExpressions` to strip complex HTML tags and deliver a clean, plain-text layout preview to the terminal to ensure data interpolation accuracy.
@@ -26,10 +26,19 @@ The third phase transitions the application from relying on static local data fi
 * **Dynamic Web Searches:** Embedded in-app API query engine using SerpApi to perform real-time web searches, allowing users to automatically aggregate orchestra directory data by county without manual list preparation.
 * **CRUD & Filtering Engine:** Built an interactive CRUD layer directly into the workflow. Data is parsed and filtered automatically, then exposed through CRUD functionality so the user can review and modify data before approving the final email queue.
 
+#### Update: Resiliency Pipelines (Version 3.0.1.0)
+* Added `Polly` resiliency pipelines to the API query engine to prevent data loss during network interruptions. The program will now automatically retry failed requests to ensure that all data is retrieved successfully.
+* Implemented `IConfiguration` to allow user secrets to be added, removing the need for hardcoded credentials in the program.
+
 ## Future Updates
 * [x] Organize the code into logical modules.
 * [x] Update the mailing service to MailKit.
 * [x] Update the authentication method to the industry-standard OAuth 2.0.
-* [ ] Implement `Polly` to improve API call resilience and prevent data loss during network interruptions.
+* [x] Implement `IConfiguration` to allow for dynamic configuration of the program without requiring code changes.
+* [x] Implement `Polly` to improve API call resilience and prevent data loss during network interruptions.
+* [ ] Implement `Dependency Injection` to allow for better testability and maintainability of the code.
+* [ ] Implement a logging framework to allow for better debugging and error tracking.
 * [ ] Allow the user to select if they would like to send an email one at a time (current implementation), or as a batch via parallel async tasks (`Parallel.ForEachAsync`).
 * [ ] Implement an asynchronous API search to allow multiple concurrent requests.
+* [ ] Implement WinUI3 to modernize the experience and allow for more intuitive user interaction.
+* [ ] Implement a serialization method to allow for saving and loading of user data and preferences.

@@ -5,11 +5,16 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>754d9b14-9b7f-4830-b52b-0d70fad5945a</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Supplemental\.txt Files\counties.txt" />
-    <Content Include="Supplemental\.txt Files\MailMessage_Prompt.txt" />
+    <Content Include="Supplemental\.txt Files\counties.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Supplemental\.txt Files\MailMessage_Prompt.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -22,6 +27,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
+    <PackageReference Include="Polly.Core" Version="8.7.0" />
   </ItemGroup>
 
 </Project>

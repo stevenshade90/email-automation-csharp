@@ -48,9 +48,9 @@ namespace Orchestra_Finder_Web_Crawler
             }
             catch
             {
-                Console.WriteLine("Failed to retrieve HTML data from website.");
+                Console.WriteLine("\t\tFailed to retrieve HTML data from website.");
+                throw;
             }
-            return "";
         }
 
         public static async Task<List<string>> GetAdditionalWebsitePages(string htmlData)
@@ -102,6 +102,7 @@ namespace Orchestra_Finder_Web_Crawler
 
         static string ToAbsoluteUrl(string baseUrl, string href)
         {
+            //Maybe to switch statement
             if (string.IsNullOrWhiteSpace(href))
             {
                 return string.Empty;

@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using Microsoft.Extensions.Configuration;
+using System.Net;
 using System.Text.Json;
 
 
@@ -6,22 +7,34 @@ namespace OAuthImplementation
 {
     internal class Authentication
     {
-        private static readonly string clientId = "";
-        private static readonly string clientSecret = "";
-        private static readonly string redirectUri = "";
-        private static readonly string tokenEndpoint = "";
-        private static readonly string grantType = "";
+        private readonly IConfigurationRoot config;
 
-        public static string requestUri = "";
-        public static string authorizationEndpoint = "";
-        public static string responseType = ""; 
-        public static string scope = ""; 
-        public static string authorizationUrl = $"{authorizationEndpoint}?response_type={responseType}&client_id={clientId}&redirect_uri={redirectUri}&scope={scope}";
+        private readonly string clientId;
+        private readonly string clientSecret;
+
+        private static readonly string redirectUri = "http://127.0.0.1:5000/";
+        private static readonly string tokenEndpoint = "https://oauth2.googleapis.com/token";
+        private static readonly string grantType = "authorization_code";
+
+        public static string requestUri = "https://gmail.googleapis.com/gmail/v1/users/me/profile";
+        public static string authorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
+        public static string responseType = "code";
+        public static string scope = "https://mail.google.com/";
+        public static string authorizationUrl;
 
         public string AuthorizationCode { get; set; }
         public Task<string> AccessToken {  get; set; }
 
-        public Authentication() { }
+        public Authentication() 
+        {
+             config = new ConfigurationBuilder()
+                .AddUserSecrets<Authentication>()
+                .Build();
+
+            clientId = config["Auth:clientId"];
+            clientSecret = config["Auth:clientSecret"];
+            authorizationUrl = $"{authorizationEndpoint}?response_type={responseType}&client_id={clientId}&redirect_uri={redirectUri}&scope={scope}";
+        }
 
         public void OpenInternetWindow()
         {

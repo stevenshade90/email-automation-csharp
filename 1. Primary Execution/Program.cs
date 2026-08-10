@@ -1,6 +1,13 @@
-﻿using Email_Automation.CoreMethods;
+﻿global using Microsoft.Extensions.Configuration;
+global using MimeKit;
+global using MailKit.Net.Smtp;
+global using MailKit.Security;
+
+using Email_Automation.CoreMethods;
 using Email_Automation.PrimaryUser;
 using SqlData;
+
+
 
 using static Orchestra_Finder_API_Query.CoreProgram;
 
@@ -30,8 +37,8 @@ namespace Email_Automation.Core
 
                     // 3. CRUD
                     DisplaySectionText("DATA EDITING", consoleColor = ConsoleColor.DarkCyan);
-                    SqlData.Program.Read();
-                    SqlData.Program.CrudOperationSelection();
+                    SqlData.Crud.Read();
+                    SqlData.Crud.CrudOperationSelection();
 
                     // 4. Email sending sequence
                     DisplaySectionText("SEND EMAILS", consoleColor = ConsoleColor.DarkGreen);
@@ -42,7 +49,7 @@ namespace Email_Automation.Core
 
                     // 6. Load the email text, and then emails are displayed and sent one-by-one
                     MailingMethods.LoadEmailMessage(PrimaryUser);
-                    MailingMethods.EmailSendingSequence(PrimaryUser);
+                    PrimaryUser.Pipeline.Execute(() => MailingMethods.EmailSendingSequence(PrimaryUser));
 
                     // 7. Auto-save results and transcript
                     await PrimaryUser.TranscriptInvocation(PrimaryUser);
@@ -63,7 +70,7 @@ namespace Email_Automation.Core
                 Console.WriteLine(display);
                 Console.WriteLine();
 
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ResetColor();;
             }
 
             //Also check for UTF-8?
@@ -93,7 +100,7 @@ namespace Email_Automation.Core
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.Write("\n\nEnter 'q' to quit, or enter any other key to continue: ");
                 var response = Console.ReadLine();
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ResetColor();
 
                 bool b = response.Equals("q", StringComparison.OrdinalIgnoreCase)
                      ? false
@@ -101,9 +108,8 @@ namespace Email_Automation.Core
 
                 if (b == true)
                 {
-                    SqlData.Program.ContinueCrud = true;
+                    SqlData.Crud.ContinueCrud = true;
                 }
-
                 return b;
             }
         }

@@ -1,12 +1,10 @@
-﻿using Email_Automation.Engines;
-using Email_Automation.PrimaryUser;
+﻿using Email_Automation.PrimaryUser;
+using Email_Automation_Update.Supplemental.Engines;
 using Email_Automation_Update.Supplemental.Methods;
-using MimeKit;
 using OrchestraInformation;
 using System.Net.Mail;
 using System.Text;
 using System.Text.RegularExpressions;
-
 
 namespace Email_Automation_Update.Supplemental.Methods
 {
@@ -19,20 +17,21 @@ namespace Email_Automation_Update.Supplemental.Methods
         public Action<User> Warning;
 
         //Methods
-        public void LoadingImage(Task awaitingCsvProcessing)
+        [Obsolete("May use later for certain loading tasks", true)]
+        public void LoadingImage(Task awaitingTask)
         {
             //Loading image that will only display as the csv processing task is running
             int iterator = 1;
             Console.ForegroundColor = ConsoleColor.Green;
             char[] loading = { '|', '/', '-', '\\' };
 
-            while (!awaitingCsvProcessing.IsCompleted)
+            while (!awaitingTask.IsCompleted)
             {
                 Console.Write("\rLoading information... {0}", loading[iterator % 4]);
                 iterator++;
                 Thread.Sleep(100);
             }
-            Console.ForegroundColor = ConsoleColor.White;
+            Console.ResetColor();
             Console.Write($"\r{divider}\n");
         }
 
@@ -64,7 +63,7 @@ namespace Email_Automation_Update.Supplemental.Methods
                     Console.WriteLine("Terminating program");
                     Environment.Exit(0);
                 }
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ResetColor();
                 Console.WriteLine($"{divider}\n");
                 Thread.Sleep(3000);
             };
@@ -79,54 +78,16 @@ namespace Email_Automation.CoreMethods
 {
     internal class MailingMethods
     {
+        public static StringBuilder ModifiedUrl = new StringBuilder();
+
+        public static IConfigurationRoot config = new ConfigurationBuilder()
+            .AddUserSecrets<MailingMethods>()
+            .Build();
+
         public string EmailMessage { get; set; } = "";
         public string Transcript { get; set; } = "";
         public string UrlInfoAsString { get; set; } = "";
-        public static StringBuilder ModifiedUrl = new StringBuilder();
-        public static string MessageDirectory { get; set; } = @"";
-
-        //Methods
-        [Obsolete("This method was used in the previous version, but may be reimplemented later")]
-        public static async Task BuildURL(User PrimaryUser)
-        {
-            //URL for CSV task is built here, and this method will continue until
-            //(1) an appropriately formatted URL is entered, and (2) data is pulled from the URL
-            string url;
-            bool success = false;
-
-            while (!success)
-            {
-                Console.Write("Enter URL of your Google Sheet: ");
-                url = Console.ReadLine();
-
-                ModifiedUrl.Clear();
-
-                if (url.Contains("#gid="))
-                {
-                    ModifiedUrl.Append(url.Substring(0, url.IndexOf("/edit?")));
-                    ModifiedUrl.Append("/export?format=csv&gid=");
-                    ModifiedUrl.Append(url.Substring(url.IndexOf("#gid=") + new string("#gid=").Length));
-
-                    try
-                    {
-                        PrimaryUser.MailingMethodsEngine.UrlInfoAsString = await PrimaryUser.AccountInformationEngine.UserHttpClient.GetStringAsync(ModifiedUrl.ToString());
-
-                        if (!string.IsNullOrWhiteSpace(PrimaryUser.MailingMethodsEngine.UrlInfoAsString))
-                        {
-                            success = true;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("Unable to process information ({0})", e.Message);
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Invalid URL\n");
-                }
-            }
-        }
+        public static string MessageDirectory { get; set; } = @"Supplemental\.txt Files\MailMessage_Prompt.txt";
 
         public static void LoadEmailMessage(User PrimaryUser)
         {
@@ -191,10 +152,23 @@ namespace Email_Automation.CoreMethods
                 try
                 {
                     //This needs to be updated prior to send 
-                    PrimaryUser.AccountInformationEngine.UserMimeMessage.To.Add(new MailboxAddress(null, "")); // test email
-                    //PrimaryUser.AccountInformationEngine.UserMimeMessage.To.Add(new MailboxAddress(null, o.OrchestraEmail)); // primary send email
+                    PrimaryUser.AccountInformationEngine.UserMimeMessage.To.Add(new MailboxAddress(null, config["User:email"])); // test email
+                    //PrimaryUser.AccountInformationEngine.UserMimeMessage.To.Add(new MailboxAddress(null, o.Email)); // primary send email
 
-                    Console.WriteLine($"EMAIL PREVIEW TO: {o.OrchestraName} : {o.Email}\n");
+                    //Convert to method
+                    IList<MimeKit.MailboxAddress> recip = PrimaryUser.AccountInformationEngine.UserMimeMessage.GetRecipients();
+                    string? recipientEmail = recip.FirstOrDefault()?.Address;
+
+                    var ColorAndEmail = (recipientEmail == config["User:email"])
+                        ? (Color: ConsoleColor.Green, Text: $"In test mode ({recipientEmail})")
+                        : (Color: ConsoleColor.Red, Text: $"Sending live emails ({recipientEmail})");
+
+                    Console.ForegroundColor = ColorAndEmail.Color;
+                    Console.WriteLine(ColorAndEmail.Text);
+                    Console.ResetColor();
+                    //
+
+                    Console.WriteLine($"EMAIL PREVIEW TO: {o.OrchestraName} : {recipientEmail}\n"); 
                     Console.WriteLine(previewText);
                     Console.Write("Press Y to send email: ");
 
@@ -204,7 +178,7 @@ namespace Email_Automation.CoreMethods
                         PrimaryUser.AccountInformationEngine.UserSmtpClient.Send(PrimaryUser.AccountInformationEngine.UserMimeMessage);
                         Console.ForegroundColor = ConsoleColor.DarkGreen;
                         Console.WriteLine($"\nSuccessfully sent email to: {o.Email}");
-                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.ResetColor();
                         Console.WriteLine($"\n{LoadingAndDisplay.divider}\n");
 
 
@@ -214,7 +188,7 @@ namespace Email_Automation.CoreMethods
                     {
                         Console.ForegroundColor = ConsoleColor.DarkRed;
                         Console.WriteLine($"\nEmail not sent to: {o.Email}");
-                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.ResetColor();
                         Console.WriteLine($"\n{LoadingAndDisplay.divider}\n");
 
                         PrimaryUser.FailedEmails.Add(o);
@@ -229,14 +203,14 @@ namespace Email_Automation.CoreMethods
                 {
                     Console.ForegroundColor = ConsoleColor.DarkRed;
                     Console.WriteLine($"\nSMTP Error sending to: {o.Email}: {ex.StatusCode} - {ex.Message}");
-                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.ResetColor();
                     PrimaryUser.FailedEmails.Add(o);
                 }
                 catch (Exception ex)
                 {
                     Console.ForegroundColor = ConsoleColor.DarkRed;
                     Console.WriteLine($"\nGeneral error sending to: {o.Email}: {ex.Message}\n");
-                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.ResetColor();
                     PrimaryUser.FailedEmails.Add(o);
                 }
 
