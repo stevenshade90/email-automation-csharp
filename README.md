@@ -26,7 +26,7 @@ The third phase transitions the application from relying on static local data fi
 * **Dynamic Web Searches:** Embedded in-app API query engine using SerpApi to perform real-time web searches, allowing users to automatically aggregate orchestra directory data by county without manual list preparation.
 * **CRUD & Filtering Engine:** Built an interactive CRUD layer directly into the workflow. Data is parsed and filtered automatically, then exposed through CRUD functionality so the user can review and modify data before approving the final email queue.
 
-#### Update: Resiliency Pipelines (Version 3.0.1.0)
+#### Update: Resiliency Pipelines & IConfiguration (Version 3.0.1.0)
 * Added `Polly` resiliency pipelines to the API query engine to prevent data loss during network interruptions. The program will now automatically retry failed requests to ensure that all data is retrieved successfully.
 * Implemented `IConfiguration` to allow user secrets to be added, removing the need for hardcoded credentials in the program.
 
