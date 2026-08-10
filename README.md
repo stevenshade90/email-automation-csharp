@@ -2,7 +2,7 @@
 An asynchronous C# emailing program that dynamically discovers contacts via SerpApi, provides interactive CRUD data filtering, and automates personalized HTML email delivery using OAuth 2.0.
 
 ## Features
-* **User Information Security:** User credentials are located on the user's computer (`Environment.GetEnvironmentVariable`), preventing the need for hardcoded credentials in the program.
+* **User Information Security:** User credentials are stored in `IConfiguration` secrets, preventing the need for hardcoded credentials in the program.
 * **StreamReader and StreamWriter:** Utilizes `StreamReader` to load and display data from a .txt file, and uses `StreamWriter` to save email transcripts.
 * **Emailing Guardrails:** Displays the email that is about to be sent for user verification, then requires explicit user confirmation (`Console.ReadKey`) before sending an email.
 * **HTML Integration:** Utilizes HTML syntax to structure transcript outputs, as well as generate a user signature on the email.
