@@ -1,4 +1,4 @@
-# Mass Email Automation Program
+# Email Automation Program
 An asynchronous C# emailing program that dynamically discovers contacts via SerpApi, provides interactive CRUD data filtering, and automates personalized HTML email delivery using OAuth 2.0.
 
 ## Features
