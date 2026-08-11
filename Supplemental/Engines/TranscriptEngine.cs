@@ -5,32 +5,34 @@ namespace Email_Automation_Update.Supplemental.Engines
 {
     internal sealed class TranscriptEngine
     {
-        public String ReturnTranscript { get; set; } = "";
 
-        //Constructors
-        public TranscriptEngine() { }
-        public TranscriptEngine(String transcript)
+        private readonly User _user;
+        public User PrimaryUser => _user;
+
+        public String Transcript { get; set; } = "";
+
+        public TranscriptEngine(User user) 
         {
-            ReturnTranscript = transcript;
+            _user = user;
         }
 
         //Delegate
-        private Func<User, Task> GenerateTranscript => GenerateResultsAndTranscript;
+        private Func<Task> GenerateTranscript => GenerateResultsAndTranscript;
 
 
         //Methods
-        public async Task FuncInvocation(User PrimaryUser)
+        public async Task FuncInvocation()
         {
-            await GenerateTranscript.Invoke(PrimaryUser);
+            await GenerateTranscript.Invoke();
         }
 
-        private async Task GenerateResultsAndTranscript(User PrimaryUser)
+        private async Task GenerateResultsAndTranscript()
         {
             //Generates an html document listing emails that were sucessfully/unsuccessfully sent as well a transcript showing each email sent to all orchestras 
             //These files are auto saved with appropriate tags and location to the directory generated from GenerateDirectory
             String dateAndTime = DateTime.Now.ToLongDateString() + " (" + DateTime.Now.ToLongTimeString() + ")";
 
-            DirectoryInfo dir = GenerateDirectory(PrimaryUser);
+            DirectoryInfo dir = GenerateDirectory();
 
             await Task.Run(() =>
             {
@@ -100,7 +102,7 @@ namespace Email_Automation_Update.Supplemental.Engines
 
                     using (StreamWriter transcriptWriter = new StreamWriter(transcriptPath))
                     {
-                        transcriptWriter.WriteLine((string)PrimaryUser.TranscriptEngine.ReturnTranscript);
+                        transcriptWriter.WriteLine((string)PrimaryUser.TranscriptEngine.Value.Transcript);
                     }
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine($"Results saved to: {transcriptPath}");
@@ -115,7 +117,7 @@ namespace Email_Automation_Update.Supplemental.Engines
             });
         }
 
-        private DirectoryInfo GenerateDirectory(User PrimaryUser)
+        private DirectoryInfo GenerateDirectory()
         {
             //Generates and returns the directory used to autosave the html and transcript documents
             String stateCode = String.IsNullOrWhiteSpace(PrimaryUser.AllOrchestrasFromRecord[0].State)

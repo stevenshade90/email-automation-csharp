@@ -1,7 +1,5 @@
-﻿using Email_Automation.CoreMethods;
-using Email_Automation_Update.Supplemental.Classes_and_Engines;
+﻿using Email_Automation_Update.Supplemental.Classes_and_Engines;
 using Email_Automation_Update.Supplemental.Engines;
-using Email_Automation_Update.Supplemental.Methods;
 using OAuthImplementation;
 using OrchestraInformation;
 using System.Collections;
@@ -18,6 +16,9 @@ namespace Email_Automation.PrimaryUser
         public List<OrchestraRecord> SuccessfulEmails { get; set; } = new List<OrchestraRecord>();
         public List<OrchestraRecord> FailedEmails { get; set; } = new List<OrchestraRecord>();
 
+        public HttpClient UserHttpClient { get; set; }
+
+
         //Email signature information
         public String youtubePageUrl { get; set; }
         public String portfolioUrl { get; set; }
@@ -27,14 +28,14 @@ namespace Email_Automation.PrimaryUser
         public String? HtmlSignatureProperty { get; set; } = "";
 
         //Containment/Delegation (Maybe make private and access with property at some point)
+        public Authentication Authentication;
+        public Lazy<TranscriptEngine> TranscriptEngine;
         public AccountInformationEngine AccountInformationEngine;
-        public Authentication UserAuthentication;
-        public TranscriptEngine TranscriptEngine;
-        public MailingMethods MailingMethodsEngine;
-        public LoadingAndDisplay LoadingAndDisplayEngine;
-        public CustomResiliencePipelineOptions CustomPipeline;
+        public MailingMethodsEngine MailingMethodsEngine;
+        public LoadingAndDisplayEngine LoadingAndDisplayEngine;
+        public CustomResiliencePipelineOptions PollyPipeline;
 
-        public ResiliencePipeline Pipeline => CustomPipeline.ResiliencePipeline;
+        public ResiliencePipeline Pipeline => PollyPipeline.ResiliencePipeline;
 
         //Primary constructor
         public User()
@@ -44,24 +45,24 @@ namespace Email_Automation.PrimaryUser
                 .Build();
 
             youtubePageUrl = config["User:ytPageUrl"];
-            portfolioUrl = config["Users:webpageUrl"];
+            portfolioUrl = config["User:webpageUrl"];
 
-            AccountInformationEngine = new AccountInformationEngine();
-            UserAuthentication = new Authentication();
-            TranscriptEngine = new TranscriptEngine();
-            MailingMethodsEngine = new MailingMethods();
-            LoadingAndDisplayEngine = new LoadingAndDisplay();
-            CustomPipeline = new CustomResiliencePipelineOptions();
+            UserHttpClient = new HttpClient();
+            TranscriptEngine = new Lazy<TranscriptEngine>(() => new TranscriptEngine(this));
+            Authentication = new Authentication(this);
+            AccountInformationEngine = new AccountInformationEngine(this);
+            MailingMethodsEngine = new MailingMethodsEngine(this);
+            LoadingAndDisplayEngine = new LoadingAndDisplayEngine(this);
+            PollyPipeline = new CustomResiliencePipelineOptions();
 
             HtmlSignatureGeneration();
         }
 
         public void BeginAuthentication()
         {
-            UserAuthentication.OpenInternetWindow();
-            UserAuthentication.AuthorizationCode = UserAuthentication.HttpListenerForAuthorizationCode();
-            UserAuthentication.AccessToken = UserAuthentication.ExchangeAuthorizationCodeForAccessToken(UserAuthentication.AuthorizationCode);
-            AccountInformationEngine.ClientInitialization(this);
+            Authentication.OpenInternetWindow();
+            Authentication.AuthorizationCode = Authentication.HttpListenerForAuthorizationCode();
+            Authentication.AccessToken = Authentication.ExchangeAuthorizationCodeForAccessToken(Authentication.AuthorizationCode);
         }
 
         //Methods
@@ -89,15 +90,15 @@ namespace Email_Automation.PrimaryUser
 </div>";
         }
 
-        public async Task TranscriptInvocation(User PrimaryUser)
+        public async Task TranscriptInvocation()
         {
-            await TranscriptEngine.FuncInvocation(PrimaryUser);
+            await TranscriptEngine.Value.FuncInvocation();
         }
 
         public void Dispose()
         {
+                this.UserHttpClient?.Dispose();
                 AccountInformationEngine.UserSmtpClient?.Dispose();
-                AccountInformationEngine.UserHttpClient?.Dispose();
                 AccountInformationEngine.UserMimeMessage?.Dispose();
 
                 Console.ForegroundColor = ConsoleColor.Green;

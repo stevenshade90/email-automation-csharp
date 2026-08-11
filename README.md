@@ -30,6 +30,12 @@ The third phase transitions the application from relying on static local data fi
 * Added `Polly` resiliency pipelines to the API query engine to prevent data loss during network interruptions. The program will now automatically retry failed requests to ensure that all data is retrieved successfully.
 * Implemented `IConfiguration` to allow user secrets to be added, removing the need for hardcoded credentials in the program.
 
+#### Update: Memory Efficiency & Modularization (Version 3.0.2.0)
+* Implemented `yield return`, eliminating display latency caused during CRUD read operations.
+* Secured email message content by moving the email body text into User Secrets and updated syntax logic to accurately parse data.
+* Refactored `TranscriptEngine` into a `Lazy<TranscriptEngine>` object to defer instantiation until needed at the end of the program lifecycle.
+* Modularized all engine files to improve maintainability.
+
 ## Future Updates
 * [x] Organize the code into logical modules.
 * [x] Update the mailing service to MailKit.

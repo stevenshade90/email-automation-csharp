@@ -1,5 +1,4 @@
 ﻿using Email_Automation.PrimaryUser;
-using Microsoft.Extensions.Configuration;
 using Orchestra_Finder_Web_Crawler;
 using OrchestraInformation;
 using SqlData;
@@ -18,7 +17,7 @@ namespace Orchestra_Finder_API_Query
 
         public static async Task GoogleSearchForOrchestraInformation(User PrimaryUser)
         {
-            HttpClient Client = PrimaryUser.AccountInformationEngine.UserHttpClient;
+            HttpClient Client = PrimaryUser.UserHttpClient;
 
             string serpApiKey = config["Api:serpApiKey"];
             string CountyFileLocation = @"Supplemental\.txt Files\counties.txt";
@@ -134,6 +133,9 @@ namespace Orchestra_Finder_API_Query
                             * Rather than: database => Parse info => add to user
                             * becomes: websearch => Parse info => Add to adatabase (This way the Read() method in CRUD will already eliminiate duplicate Orchestra names,
                             * but be careful not to remove NO-NAME/NO-EMAIL values 
+                            * 
+                            * Records also need to be loaded into memory -- loading larger datasets takes too long during CRUD
+                            * When in CRUD, quick display of the current record to reduce scrolling on larger data sets
                             */
 
                         context.OrchestraInformation.Add(newOrchestra);

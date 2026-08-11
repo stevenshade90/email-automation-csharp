@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Email_Automation.PrimaryUser;
 using System.Net;
 using System.Text.Json;
 
@@ -8,6 +8,9 @@ namespace OAuthImplementation
     internal class Authentication
     {
         private readonly IConfigurationRoot config;
+
+        private readonly User _user;
+        public User PrimaryUser => _user;
 
         private readonly string clientId;
         private readonly string clientSecret;
@@ -25,8 +28,10 @@ namespace OAuthImplementation
         public string AuthorizationCode { get; set; }
         public Task<string> AccessToken {  get; set; }
 
-        public Authentication() 
+        public Authentication(User user)
         {
+            _user = user;
+
              config = new ConfigurationBuilder()
                 .AddUserSecrets<Authentication>()
                 .Build();
@@ -47,6 +52,7 @@ namespace OAuthImplementation
 
         public string HttpListenerForAuthorizationCode()
         {
+            //Something here to check for failed login?
             HttpListener listener = new HttpListener();
             listener.Prefixes.Add(redirectUri);
 
@@ -75,7 +81,7 @@ namespace OAuthImplementation
         {
             string postData = $"grant_type=authorization_code&code={authorizationCode}&redirect_uri={redirectUri}&client_id={clientId}&client_secret={clientSecret}";
 
-            HttpClient client = new HttpClient();
+            HttpClient client = PrimaryUser.UserHttpClient;
 
             StringContent stringCon = new StringContent(postData);
             stringCon.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-www-form-urlencoded");
@@ -92,7 +98,7 @@ namespace OAuthImplementation
 
         public async Task<string> MakeAuthorizedRequest(string accessToken, string apiUrl)
         {
-            HttpClient client = new HttpClient();
+            HttpClient client = PrimaryUser.UserHttpClient;
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
             HttpResponseMessage apiResponse = await client.GetAsync(apiUrl);

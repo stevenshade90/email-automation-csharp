@@ -7,26 +7,30 @@ namespace Email_Automation_Update.Supplemental.Engines
     {
         public IConfiguration config;
 
-        public SmtpClient UserSmtpClient { get; set; } = new SmtpClient();
-        public HttpClient UserHttpClient { get; set; }
+
+        private readonly User _user;
+        public User PrimaryUser => _user;
+
+        public MailKit.Net.Smtp.SmtpClient UserSmtpClient { get; set; } 
 
         public MimeMessage UserMimeMessage { get; set; } = new MimeMessage();
 
         public String MainUserEmail { get; init; } 
         public String MainUserDisplayName { get; init; } 
         public String EmailSubject { get; init; }
-
         public String EmailMessage { get; set; } = "";
 
         private const String smtpHost = "smtp.gmail.com";
         private const int smtpPort = 587;
 
         private delegate void EngineDelegate();
-        private event EngineDelegate UserAccountCreationMethods; // Assigned to 3 methods listed in constructor
+        private event EngineDelegate UserAccountCreationMethods; // Assigned to methods listed in constructor
 
         //Primary Constructor
-        public AccountInformationEngine()
+        public AccountInformationEngine(User user)
         {
+            this._user = user;
+
             config = new ConfigurationBuilder()
                 .AddUserSecrets<AccountInformationEngine>()
                 .Build();
@@ -44,16 +48,17 @@ namespace Email_Automation_Update.Supplemental.Engines
             UserAccountCreationMethods.Invoke();
         }
 
-        public void ClientInitialization(User u)
+        public void ClientInitialization()
         {
+            //This initializes the SMTP client prior to sending emails to prevent timeouts
+            UserSmtpClient = new MailKit.Net.Smtp.SmtpClient();
+
             //User object clients are initialized, allowing communication with internet and email
             try
             {
-                UserHttpClient = new HttpClient();
+                SaslMechanismOAuth2 oauth2 = new SaslMechanismOAuth2(MainUserEmail, (PrimaryUser.Authentication.AccessToken).Result);
 
-                SaslMechanismOAuth2 oauth2 = new SaslMechanismOAuth2(MainUserEmail, (u.UserAuthentication.AccessToken).Result);
-
-                UserSmtpClient.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+                UserSmtpClient.Connect(smtpHost, 587, MailKit.Security.SecureSocketOptions.StartTls);
                 UserSmtpClient.Authenticate(oauth2);    
             }
             catch (Exception ex)

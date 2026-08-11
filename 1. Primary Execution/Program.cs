@@ -1,13 +1,9 @@
-﻿global using Microsoft.Extensions.Configuration;
+﻿global using MailKit.Security;
+global using Microsoft.Extensions.Configuration;
 global using MimeKit;
-global using MailKit.Net.Smtp;
-global using MailKit.Security;
 
-using Email_Automation.CoreMethods;
 using Email_Automation.PrimaryUser;
 using SqlData;
-
-
 
 using static Orchestra_Finder_API_Query.CoreProgram;
 
@@ -18,6 +14,7 @@ namespace Email_Automation.Core
     {
         static async Task Main()
         {
+            Console.Title = "Email Automation";
             System.ConsoleColor consoleColor;
             bool outerContinueSequence = true;
 
@@ -37,7 +34,7 @@ namespace Email_Automation.Core
 
                     // 3. CRUD
                     DisplaySectionText("DATA EDITING", consoleColor = ConsoleColor.DarkCyan);
-                    SqlData.Crud.Read();
+                    SqlData.Crud.CrudOperation(2);
                     SqlData.Crud.CrudOperationSelection();
 
                     // 4. Email sending sequence
@@ -45,14 +42,14 @@ namespace Email_Automation.Core
                     await LoadEmailsToUser(PrimaryUser);
                                          
                     // 5. User views all emails and confirms whether or not to continue
-                    PrimaryUser.LoadingAndDisplayEngine.DisplayOrchestrasAndWarning(PrimaryUser);
+                    PrimaryUser.LoadingAndDisplayEngine.DisplayOrchestrasAndWarning();
 
                     // 6. Load the email text, and then emails are displayed and sent one-by-one
-                    MailingMethods.LoadEmailMessage(PrimaryUser);
-                    PrimaryUser.Pipeline.Execute(() => MailingMethods.EmailSendingSequence(PrimaryUser));
+                    PrimaryUser.MailingMethodsEngine.LoadEmailMessage();
+                    PrimaryUser.Pipeline.Execute(() => PrimaryUser.MailingMethodsEngine.EmailSendingSequence());
 
                     // 7. Auto-save results and transcript
-                    await PrimaryUser.TranscriptInvocation(PrimaryUser);
+                    await PrimaryUser.TranscriptInvocation();
 
                     // 8.Rerun program
                     outerContinueSequence = ContinueRequest();

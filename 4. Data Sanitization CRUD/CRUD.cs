@@ -2,7 +2,7 @@
 global using System.ComponentModel.DataAnnotations;
 global using System.ComponentModel.DataAnnotations.Schema;
 
-using Email_Automation_Update.Supplemental.Methods;
+using Email_Automation_Update.Supplemental.Engines;
 using OrchestraInformation;
 
 
@@ -18,7 +18,7 @@ namespace SqlData
 
             while (ContinueCrud)
             {
-                Console.WriteLine(LoadingAndDisplay.divider);
+                Console.WriteLine(LoadingAndDisplayEngine.divider);
 
                 Console.WriteLine("\nSelect what you would like to do to your data:");
                 Console.WriteLine("\t1. Create");
@@ -34,22 +34,37 @@ namespace SqlData
                 Console.WriteLine();
                 Console.ResetColor();
 
-                Action crudOperation = CrudOperation(choice);
-                crudOperation.Invoke();
+                CrudOperation(choice);
             }
         }
 
-        public static Action CrudOperation(int choice)
+        public static void CrudOperation(int choice)
         {
-            return choice switch
+            switch (choice)
             {
-                1 => Create,
-                2 => Read,
-                3 => Update,
-                4 => Delete,
-                5 => Exit,
-                _ => () => Console.WriteLine("Not an option")
-            };
+                case 1:
+                    Create();
+                    break;
+                case 2:
+                    IEnumerable<OrchestraRecord> r = Read();
+                    foreach (var record in r)
+                    {
+                        Console.WriteLine(record);
+                    }
+                    break;
+                case 3:
+                    Update();
+                    break;
+                case 4:
+                    Delete();
+                    break;
+                case 5:
+                    Exit();
+                    break;
+                default:
+                    Console.WriteLine("Not an option");
+                    break;
+            }
         }
 
         public static async void Create()
@@ -86,19 +101,19 @@ namespace SqlData
             }
         }
 
-        public static void Read()
+        public static IEnumerable<OrchestraRecord> Read()
         {
             using (var context = new OrchestraRecordContext())
             {
                 if (context.OrchestraInformation.Count() > 0)
                 {
-                    foreach (var record in context.OrchestraInformation.OrderBy(record => record.County))
+                    foreach (var record in context.OrchestraInformation) //orderby statement??? maybe up above in the () => statement #2 switch?
                     {
                         if (!(record.Website.Length < 40))
                         {
                             record.Website = record.Website.Substring(0, 40) + "...";
                         }
-                        Console.WriteLine(record);
+                        yield return record;
                     }
                 }
                 else

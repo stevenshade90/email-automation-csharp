@@ -12,9 +12,6 @@
     <Content Include="Supplemental\.txt Files\counties.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Supplemental\.txt Files\MailMessage_Prompt.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
