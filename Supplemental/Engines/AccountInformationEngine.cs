@@ -5,20 +5,20 @@ namespace Email_Automation_Update.Supplemental.Engines
 {
     internal sealed class AccountInformationEngine 
     {
-        public IConfiguration config;
+        private IConfiguration config;
 
 
         private readonly User _user;
-        public User PrimaryUser => _user;
+        private User PrimaryUser => _user;
 
-        public MailKit.Net.Smtp.SmtpClient UserSmtpClient { get; set; } 
+        internal MailKit.Net.Smtp.SmtpClient UserSmtpClient { get; set; } 
 
-        public MimeMessage UserMimeMessage { get; set; } = new MimeMessage();
+        internal MimeMessage UserMimeMessage { get; set; } = new MimeMessage();
 
-        public String MainUserEmail { get; init; } 
-        public String MainUserDisplayName { get; init; } 
-        public String EmailSubject { get; init; }
-        public String EmailMessage { get; set; } = "";
+        private String MainUserEmail { get; init; } 
+        private String MainUserDisplayName { get; init; } 
+        private String EmailSubject { get; init; }
+        internal String EmailMessage { get; set; } = "";
 
         private const String smtpHost = "smtp.gmail.com";
         private const int smtpPort = 587;
@@ -43,12 +43,12 @@ namespace Email_Automation_Update.Supplemental.Engines
         }
 
         //Methods
-        public void EventInvocation()
+        internal void EventInvocation()
         {
             UserAccountCreationMethods.Invoke();
         }
 
-        public void ClientInitialization()
+        internal void ClientInitialization()
         {
             //This initializes the SMTP client prior to sending emails to prevent timeouts
             UserSmtpClient = new MailKit.Net.Smtp.SmtpClient();
@@ -68,7 +68,7 @@ namespace Email_Automation_Update.Supplemental.Engines
             }
         }
 
-        public void MimeMessageInitialization()
+        internal void MimeMessageInitialization()
         {
             UserMimeMessage.From.Add(new MailboxAddress(MainUserDisplayName, MainUserEmail));
             UserMimeMessage.Subject = EmailSubject;

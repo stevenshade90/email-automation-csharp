@@ -19,14 +19,14 @@ namespace OAuthImplementation
         private static readonly string tokenEndpoint = "https://oauth2.googleapis.com/token";
         private static readonly string grantType = "authorization_code";
 
-        public static string requestUri = "https://gmail.googleapis.com/gmail/v1/users/me/profile";
-        public static string authorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
-        public static string responseType = "code";
-        public static string scope = "https://mail.google.com/";
-        public static string authorizationUrl;
+        private static string requestUri = "https://gmail.googleapis.com/gmail/v1/users/me/profile";
+        private static string authorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
+        private static string responseType = "code";
+        private static string scope = "https://mail.google.com/";
+        private static string authorizationUrl;
 
-        public string AuthorizationCode { get; set; }
-        public Task<string> AccessToken {  get; set; }
+        internal string AuthorizationCode { get; set; }
+        internal Task<string> AccessToken {  get; set; }
 
         public Authentication(User user)
         {
@@ -41,7 +41,7 @@ namespace OAuthImplementation
             authorizationUrl = $"{authorizationEndpoint}?response_type={responseType}&client_id={clientId}&redirect_uri={redirectUri}&scope={scope}";
         }
 
-        public void OpenInternetWindow()
+        internal void OpenInternetWindow()
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
@@ -50,7 +50,7 @@ namespace OAuthImplementation
             });
         }
 
-        public string HttpListenerForAuthorizationCode()
+        internal string HttpListenerForAuthorizationCode()
         {
             //Something here to check for failed login?
             HttpListener listener = new HttpListener();
@@ -77,7 +77,7 @@ namespace OAuthImplementation
             return authorizationCode;
         }
 
-        public async Task<string> ExchangeAuthorizationCodeForAccessToken(string authorizationCode)
+        internal async Task<string> ExchangeAuthorizationCodeForAccessToken(string authorizationCode)
         {
             string postData = $"grant_type=authorization_code&code={authorizationCode}&redirect_uri={redirectUri}&client_id={clientId}&client_secret={clientSecret}";
 
@@ -96,7 +96,7 @@ namespace OAuthImplementation
             return accessToken;
         }
 
-        public async Task<string> MakeAuthorizedRequest(string accessToken, string apiUrl)
+        private async Task<string> MakeAuthorizedRequest(string accessToken, string apiUrl)
         {
             HttpClient client = PrimaryUser.UserHttpClient;
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);

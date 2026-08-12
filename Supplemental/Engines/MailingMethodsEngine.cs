@@ -9,24 +9,24 @@ namespace Email_Automation_Update.Supplemental.Engines
     internal class MailingMethodsEngine
     {
         private readonly User _user;
-        public User PrimaryUser => _user;
+        private User PrimaryUser => _user;
 
-        public static StringBuilder ModifiedUrl = new StringBuilder();
+        private static StringBuilder ModifiedUrl = new StringBuilder();
 
-        public static IConfigurationRoot config = new ConfigurationBuilder()
+        private static IConfigurationRoot config = new ConfigurationBuilder()
             .AddUserSecrets<MailingMethodsEngine>()
             .Build();
 
-        public string Transcript { get; set; } = "";
-        public string UrlInfoAsString { get; set; } = "";
-        public static string EmailMessageText { get; set; } = config["User:emailMessageText"];
+        private string Transcript { get; set; } = "";
+        private string UrlInfoAsString { get; set; } = "";
+        private static string EmailMessageText { get; set; } = config["User:emailMessageText"];
 
         public MailingMethodsEngine(User user)
         {
             this._user = user;
         }
 
-        public void LoadEmailMessage()
+        internal void LoadEmailMessage()
         {
             try
             {
@@ -45,7 +45,8 @@ namespace Email_Automation_Update.Supplemental.Engines
                 Environment.Exit(1);
             }
         }
-        public void EmailSendingSequence()
+
+        internal void EmailSendingSequence()
         {
             //Maybe add another method for reconneciton logic if the conneciton is dropped?
             PrimaryUser.AccountInformationEngine.ClientInitialization(); //smtp client initialization
@@ -121,7 +122,7 @@ namespace Email_Automation_Update.Supplemental.Engines
             }
         }
 
-        public string TestOrLiveEmail()
+        private string TestOrLiveEmail()
         {
             IList<MimeKit.MailboxAddress> recip = PrimaryUser.AccountInformationEngine.UserMimeMessage.GetRecipients();
             string? recipientEmail = recip.FirstOrDefault()?.Address;

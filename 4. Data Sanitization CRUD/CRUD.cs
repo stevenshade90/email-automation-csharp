@@ -8,14 +8,13 @@ using OrchestraInformation;
 
 namespace SqlData
 {
-    public class Crud
+    internal class Crud
     {
-        public static bool ContinueCrud { get; set; } = true; 
-        public static bool CanConnect { get; set; }
+        internal static bool ContinueCrud { get; set; } = true;
+        private static bool CanConnect { get; set; }
 
-        public static void CrudOperationSelection()
+        internal static void CrudOperationSelection()
         {
-
             while (ContinueCrud)
             {
                 Console.WriteLine(LoadingAndDisplayEngine.divider);
@@ -38,7 +37,7 @@ namespace SqlData
             }
         }
 
-        public static void CrudOperation(int choice)
+        internal static void CrudOperation(int choice)
         {
             switch (choice)
             {
@@ -67,7 +66,7 @@ namespace SqlData
             }
         }
 
-        public static async void Create()
+        private static async void Create()
         {
             using (OrchestraRecordContext context = new OrchestraRecordContext())
             {
@@ -101,7 +100,7 @@ namespace SqlData
             }
         }
 
-        public static IEnumerable<OrchestraRecord> Read()
+        private static IEnumerable<OrchestraRecord> Read()
         {
             using (var context = new OrchestraRecordContext())
             {
@@ -123,7 +122,7 @@ namespace SqlData
             }
         }
 
-        public static void Update() 
+        private static void Update() 
         {
             using (var context = new OrchestraRecordContext())
             {
@@ -161,7 +160,7 @@ namespace SqlData
             }
         }
 
-        public static void Delete()
+        private static void Delete()
         {
             using (var context = new OrchestraRecordContext())
             {
@@ -191,12 +190,12 @@ namespace SqlData
 
         }
 
-        public static void Exit()
+        private static void Exit()
         {
             ContinueCrud = false;
         }
 
-        public static string InputOrchestraInfo(params object[] values)
+        private static string InputOrchestraInfo(params object[] values)
         {
             string response = "";
 
@@ -248,16 +247,16 @@ namespace SqlData
             return "";
         }
 
-        public static bool ConnectionTest(OrchestraRecordContext context)
+        private static bool ConnectionTest(OrchestraRecordContext context)
         {
             return context.Database.CanConnect() ? true : false;
         }
     }
 
 
-    public class OrchestraRecordContext : DbContext
+    internal class OrchestraRecordContext : DbContext
     {
-        public IConfiguration config = new ConfigurationBuilder()
+        private IConfiguration config = new ConfigurationBuilder()
             .AddUserSecrets<OrchestraRecordContext>()
             .Build();
 

@@ -5,14 +5,14 @@ namespace Email_Automation_Update.Supplemental.Engines
 {
     internal class LoadingAndDisplayEngine
     {
-        public static string divider = new string('_', Console.WindowWidth);
+        internal static string divider = new string('_', Console.WindowWidth);
 
         private readonly User _user;
-        public User PrimaryUser => _user;
+        private User PrimaryUser => _user;
 
         //Delegates
-        public Action DisplayOrchestrasAndWarning => DisplayAndWarning;
-        public Action Warning;
+        internal Action DisplayOrchestrasAndWarning => DisplayAndWarning;
+        private Action Warning;
 
         public LoadingAndDisplayEngine(User user)
         {
@@ -21,7 +21,7 @@ namespace Email_Automation_Update.Supplemental.Engines
 
         //Methods
         [Obsolete("May use later for certain loading tasks", true)]
-        public void LoadingImage(Task awaitingTask)
+        private void LoadingImage(Task awaitingTask)
         {
             //Loading image that will only display as the csv processing task is running
             int iterator = 1;

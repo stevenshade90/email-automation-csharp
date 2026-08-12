@@ -7,9 +7,9 @@ namespace Email_Automation_Update.Supplemental.Engines
     {
 
         private readonly User _user;
-        public User PrimaryUser => _user;
+        private User PrimaryUser => _user;
 
-        public String Transcript { get; set; } = "";
+        internal String Transcript { get; set; } = "";
 
         public TranscriptEngine(User user) 
         {
@@ -21,7 +21,7 @@ namespace Email_Automation_Update.Supplemental.Engines
 
 
         //Methods
-        public async Task FuncInvocation()
+        internal async Task FuncInvocation()
         {
             await GenerateTranscript.Invoke();
         }

@@ -10,32 +10,32 @@ namespace Email_Automation.PrimaryUser
     //At some point, maybe methods to initialize the information (UI) rather than preset?
     internal sealed class User : IEnumerable, IDisposable 
     {
-        public IConfiguration config;
+        private IConfiguration config;
 
-        public List<OrchestraRecord> AllOrchestrasFromRecord { get; set; } = new List<OrchestraRecord>();
-        public List<OrchestraRecord> SuccessfulEmails { get; set; } = new List<OrchestraRecord>();
-        public List<OrchestraRecord> FailedEmails { get; set; } = new List<OrchestraRecord>();
+        internal List<OrchestraRecord> AllOrchestrasFromRecord { get; set; } = new List<OrchestraRecord>();
+        internal List<OrchestraRecord> SuccessfulEmails { get; set; } = new List<OrchestraRecord>();
+        internal List<OrchestraRecord> FailedEmails { get; set; } = new List<OrchestraRecord>();
 
-        public HttpClient UserHttpClient { get; set; }
+        internal HttpClient UserHttpClient { get; set; }
 
 
         //Email signature information
-        public String youtubePageUrl { get; set; }
-        public String portfolioUrl { get; set; }
-        public String youtubeIconUrl { get; set; } = "https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png";
-        public String globeIconUrl { get; set; } = "https://img.icons8.com/ios-filled/50/000000/globe--v1.png";
+        private String youtubePageUrl { get; set; }
+        private String portfolioUrl { get; set; }
+        private String youtubeIconUrl { get; set; } = "https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png";
+        private String globeIconUrl { get; set; } = "https://img.icons8.com/ios-filled/50/000000/globe--v1.png";
 
-        public String? HtmlSignatureProperty { get; set; } = "";
+        internal String? HtmlSignatureProperty { get; set; } = "";
 
         //Containment/Delegation (Maybe make private and access with property at some point)
-        public Authentication Authentication;
-        public Lazy<TranscriptEngine> TranscriptEngine;
-        public AccountInformationEngine AccountInformationEngine;
-        public MailingMethodsEngine MailingMethodsEngine;
-        public LoadingAndDisplayEngine LoadingAndDisplayEngine;
-        public CustomResiliencePipelineOptions PollyPipeline;
+        internal Authentication Authentication;
+        internal Lazy<TranscriptEngine> TranscriptEngine;
+        internal AccountInformationEngine AccountInformationEngine;
+        internal MailingMethodsEngine MailingMethodsEngine;
+        internal LoadingAndDisplayEngine LoadingAndDisplayEngine;
+        internal CustomResiliencePipelineOptions PollyPipeline;
 
-        public ResiliencePipeline Pipeline => PollyPipeline.ResiliencePipeline;
+        internal ResiliencePipeline Pipeline => PollyPipeline.ResiliencePipeline;
 
         //Primary constructor
         public User()
@@ -58,7 +58,7 @@ namespace Email_Automation.PrimaryUser
             HtmlSignatureGeneration();
         }
 
-        public void BeginAuthentication()
+        internal void BeginAuthentication()
         {
             Authentication.OpenInternetWindow();
             Authentication.AuthorizationCode = Authentication.HttpListenerForAuthorizationCode();
@@ -66,7 +66,7 @@ namespace Email_Automation.PrimaryUser
         }
 
         //Methods
-        public void AccountEngineInvocation()
+        internal void AccountEngineInvocation()
         {
             AccountInformationEngine.EventInvocation();
         }
@@ -90,7 +90,7 @@ namespace Email_Automation.PrimaryUser
 </div>";
         }
 
-        public async Task TranscriptInvocation()
+        internal async Task TranscriptInvocation()
         {
             await TranscriptEngine.Value.FuncInvocation();
         }

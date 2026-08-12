@@ -36,12 +36,17 @@ The third phase transitions the application from relying on static local data fi
 * Refactored `TranscriptEngine` into a `Lazy<TranscriptEngine>` object to defer instantiation until needed at the end of the program lifecycle.
 * Modularized all engine files to improve maintainability.
 
+#### Update: Improved Encapsulation (Version 3.0.2.1)
+* Refactored classes and methods to `internal` and `private` access modifiers to restrict visibility and enforce the principal of least privilege.
+
 ## Future Updates
 * [x] Organize the code into logical modules.
 * [x] Update the mailing service to MailKit.
 * [x] Update the authentication method to the industry-standard OAuth 2.0.
 * [x] Implement `IConfiguration` to allow for dynamic configuration of the program without requiring code changes.
 * [x] Implement `Polly` to improve API call resilience and prevent data loss during network interruptions.
+* [x] Update access modifiers to improve encapsulation and enforce the principle of least privilege.
+* [ ] Revise namespace and class names to better reflect their purpose and improve code readability.
 * [ ] Implement `Dependency Injection` to allow for better testability and maintainability of the code.
 * [ ] Implement a logging framework to allow for better debugging and error tracking.
 * [ ] Allow the user to select if they would like to send an email one at a time (current implementation), or as a batch via parallel async tasks (`Parallel.ForEachAsync`).

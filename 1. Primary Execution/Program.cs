@@ -10,9 +10,9 @@ using static Orchestra_Finder_API_Query.CoreProgram;
 
 namespace Email_Automation.Core
 {
-    public class Program
+    internal class Program
     {
-        static async Task Main()
+        private static async Task Main()
         {
             Console.Title = "Email Automation";
             System.ConsoleColor consoleColor;
@@ -40,7 +40,7 @@ namespace Email_Automation.Core
                     // 4. Email sending sequence
                     DisplaySectionText("SEND EMAILS", consoleColor = ConsoleColor.DarkGreen);
                     await LoadEmailsToUser(PrimaryUser);
-                                         
+
                     // 5. User views all emails and confirms whether or not to continue
                     PrimaryUser.LoadingAndDisplayEngine.DisplayOrchestrasAndWarning();
 
@@ -52,63 +52,63 @@ namespace Email_Automation.Core
                     await PrimaryUser.TranscriptInvocation();
 
                     // 8.Rerun program
-                    outerContinueSequence = ContinueRequest();
-                } 
-            }
-
-            static void DisplaySectionText(string text, System.ConsoleColor consoleColor)
-            {
-                string display = string.Concat(Enumerable.Repeat("*", Console.WindowWidth));
-
-                Console.ForegroundColor = consoleColor;
-                Console.WriteLine();
-                Console.WriteLine(display);
-                Console.WriteLine(text.ToUpper());
-                Console.WriteLine(display);
-                Console.WriteLine();
-
-                Console.ResetColor();;
-            }
-
-            //Also check for UTF-8?
-            static async Task LoadEmailsToUser(User user)
-            {
-                await Task.Run(() => 
-                {
-                    using (var context = new OrchestraRecordContext())
-                    {
-                        var uniqueValues = context.OrchestraInformation
-                            .AsEnumerable()
-                            .DistinctBy(x => x.OrchestraName.Trim())
-                            .Where(x => x.OrchestraName != "NO-NAME" && x.Email != "NO-EMAIL")
-                            .OrderBy(x => x.OrchestraName)
-                            .ToList();           
-                         
-                        foreach (var record in uniqueValues)
-                        {
-                            user.AllOrchestrasFromRecord.Add(record);
-                        }                     
-                    }
-                });
-            }
-
-            static bool ContinueRequest()
-            {
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.Write("\n\nEnter 'q' to quit, or enter any other key to continue: ");
-                var response = Console.ReadLine();
-                Console.ResetColor();
-
-                bool b = response.Equals("q", StringComparison.OrdinalIgnoreCase)
-                     ? false
-                     : true;
-
-                if (b == true)
-                {
-                    SqlData.Crud.ContinueCrud = true;
+                    outerContinueSequence = CrudContinueRequest();
                 }
-                return b;
             }
         }
-    }
+
+        private static void DisplaySectionText(string text, System.ConsoleColor consoleColor)
+        {
+            string display = string.Concat(Enumerable.Repeat("*", Console.WindowWidth));
+
+            Console.ForegroundColor = consoleColor;
+            Console.WriteLine();
+            Console.WriteLine(display);
+            Console.WriteLine(text.ToUpper());
+            Console.WriteLine(display);
+            Console.WriteLine();
+
+            Console.ResetColor(); ;
+        }
+
+        //Also check for UTF-8?
+        private static async Task LoadEmailsToUser(User user)
+        {
+            await Task.Run(() =>
+            {
+                using (var context = new OrchestraRecordContext())
+                {
+                    var uniqueValues = context.OrchestraInformation
+                        .AsEnumerable()
+                        .DistinctBy(x => x.OrchestraName.Trim())
+                        .Where(x => x.OrchestraName != "NO-NAME" && x.Email != "NO-EMAIL")
+                        .OrderBy(x => x.OrchestraName)
+                        .ToList();
+
+                    foreach (var record in uniqueValues)
+                    {
+                        user.AllOrchestrasFromRecord.Add(record);
+                    }
+                }
+            });
+        }
+
+        private static bool CrudContinueRequest()
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write("\n\nEnter 'q' to quit, or enter any other key to continue: ");
+            var response = Console.ReadLine();
+            Console.ResetColor();
+
+            bool b = response.Equals("q", StringComparison.OrdinalIgnoreCase)
+                 ? false
+                 : true;
+
+            if (b == true)
+            {
+                SqlData.Crud.ContinueCrud = true;
+            }
+            return b;
+        }
+    }   
 }

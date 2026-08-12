@@ -11,7 +11,7 @@ namespace Email_Automation_Update.Supplemental.Classes_and_Engines
 {
     internal class CustomResiliencePipelineOptions
     {
-        public ResiliencePipeline ResiliencePipeline { get; set; }
+        internal ResiliencePipeline ResiliencePipeline { get; set; }
 
         public CustomResiliencePipelineOptions()
         {
@@ -22,7 +22,7 @@ namespace Email_Automation_Update.Supplemental.Classes_and_Engines
                 .Build();
         }
 
-        public RetryStrategyOptions RetryStrategy()
+        private RetryStrategyOptions RetryStrategy()
         {
             ImmutableArray<Type> handledExceptions =
             [
@@ -72,7 +72,7 @@ namespace Email_Automation_Update.Supplemental.Classes_and_Engines
             return retryOptions;
         }
 
-        public TimeoutStrategyOptions TimeoutStrategy()
+        private TimeoutStrategyOptions TimeoutStrategy()
         {
             TimeoutStrategyOptions timeoutOptions = new TimeoutStrategyOptions()
             {
@@ -87,7 +87,7 @@ namespace Email_Automation_Update.Supplemental.Classes_and_Engines
             return timeoutOptions;
         }
 
-        public CircuitBreakerStrategyOptions CircuitBreakerStrategy()
+        private CircuitBreakerStrategyOptions CircuitBreakerStrategy()
         {
             CircuitBreakerStrategyOptions circuitBreakerOptions = new CircuitBreakerStrategyOptions()
             {

@@ -4,12 +4,12 @@ using System.Net.Http.Headers;
 
 namespace Orchestra_Finder_Web_Crawler
 {
-    public class WebCrawler
+    internal class WebCrawler
     {
-        public static HttpClient client = new HttpClient();
+        private static HttpClient client = new HttpClient();
 
-        public List<string> additionalWebsitePages = new List<string>();
-        public List<string> allHtmls = new List<string>();
+        private List<string> additionalWebsitePages = new List<string>();
+        private List<string> allHtmls = new List<string>();
 
         static WebCrawler()
         {
@@ -18,7 +18,7 @@ namespace Orchestra_Finder_Web_Crawler
             client.DefaultRequestHeaders.UserAgent.Add(agent);
         }
 
-        public async Task<string> GetEmailFromWebsiteHtml(string primaryWebsite)
+        internal async Task<string> GetEmailFromWebsiteHtml(string primaryWebsite)
         {
             string primaryWebsiteHtmlData = await GetHtmlDataAsync(primaryWebsite);
             additionalWebsitePages = await GetAdditionalWebsitePages(primaryWebsiteHtmlData);
@@ -37,7 +37,7 @@ namespace Orchestra_Finder_Web_Crawler
             return email;
         }
 
-        public static async Task<string> GetHtmlDataAsync(string website)
+        private static async Task<string> GetHtmlDataAsync(string website)
         {
             try
             {
@@ -53,7 +53,7 @@ namespace Orchestra_Finder_Web_Crawler
             }
         }
 
-        public static async Task<List<string>> GetAdditionalWebsitePages(string htmlData)
+        private static async Task<List<string>> GetAdditionalWebsitePages(string htmlData)
         {
             string[] tags = { "connect", "contact", "about" };
 
@@ -100,7 +100,7 @@ namespace Orchestra_Finder_Web_Crawler
             return "NO-EMAIL";
         }
 
-        static string ToAbsoluteUrl(string baseUrl, string href)
+        private static string ToAbsoluteUrl(string baseUrl, string href)
         {
             //Maybe to switch statement
             if (string.IsNullOrWhiteSpace(href))

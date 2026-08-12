@@ -11,11 +11,11 @@ namespace Orchestra_Finder_API_Query
 {
     internal class CoreProgram
     {
-        public static IConfigurationRoot config = new ConfigurationBuilder()
+        private static IConfigurationRoot config = new ConfigurationBuilder()
             .AddUserSecrets<CoreProgram>()
             .Build();
 
-        public static async Task GoogleSearchForOrchestraInformation(User PrimaryUser)
+        internal static async Task GoogleSearchForOrchestraInformation(User PrimaryUser)
         {
             HttpClient Client = PrimaryUser.UserHttpClient;
 
@@ -65,7 +65,7 @@ namespace Orchestra_Finder_API_Query
             context.SaveChanges();
         }
 
-        static List<string> GetAllCounties(string filename)
+        private static List<string> GetAllCounties(string filename)
         {
             List<string> AllCounties = new List<string>();
 
@@ -76,7 +76,7 @@ namespace Orchestra_Finder_API_Query
                 .ToList();
         }
 
-        public static async Task SearchWebAndGetOrchestraRecordsAsync(User PrimaryUser, OrchestraRecordContext context, string urlCall, HttpClient Client, string state, string county)
+        private static async Task SearchWebAndGetOrchestraRecordsAsync(User PrimaryUser, OrchestraRecordContext context, string urlCall, HttpClient Client, string state, string county)
         {
             string[] restrictedWebsites = { "wikipedia", "facebook", "instagram", "tiktok", "linkedin", "youtube", "causeiq" };
 
@@ -144,7 +144,7 @@ namespace Orchestra_Finder_API_Query
             }
         }
 
-        static string SanitizeOrchestraName(string name)
+        private static string SanitizeOrchestraName(string name)
         {
             string updatedName = name;
 
